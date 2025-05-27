@@ -26,7 +26,7 @@ const SearchPage = ({shelves, noneShelf}) => {
       const merged = Array.isArray(searchRes)
         ? searchRes.map(book => ({
             ...book,
-            shelf: shelfMap.get(book.id) || 'none', // fallback to 'none'
+            shelf: shelfMap.get(book.id) || noneShelf.key,
           }))
         : [];
 
