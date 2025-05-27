@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { search, update } from '../api/booksAPI'
+import { search, update, getAll } from '../api/booksAPI'
 import { Link } from 'react-router-dom'
 import BookShelf from '../components/BookShelf.jsx'
 
@@ -7,8 +7,8 @@ const SearchPage = ({shelves, noneShelf}) => {
   const [books, setBooks] = useState([])
   const [searchStr, setSearchStr] = useState('')
   useEffect( () => {
+    let unmounted = false;
     const getBooks = async () => {
-      let unmounted = false;
       if (unmounted) {
           return;
       }
@@ -16,11 +16,24 @@ const SearchPage = ({shelves, noneShelf}) => {
         setBooks([]);
         return;
       }
-      const res = await search(searchStr, 20);
-      setBooks(Array.isArray(res) ? res : []);
-      return () => unmounted = true;
+      const searchRes = await search(searchStr, 20);
+
+      // TODO: Fix backend inconsistency so the search results have shelf info ;-)
+      const getAllRes = await getAll();
+      const shelfMap = new Map(getAllRes.map(book => [book.id, book.shelf]));
+
+      // Enrich search results with shelf info if available
+      const merged = Array.isArray(searchRes)
+        ? searchRes.map(book => ({
+            ...book,
+            shelf: shelfMap.get(book.id) || 'none', // fallback to 'none'
+          }))
+        : [];
+
+      setBooks(merged);
     };
     getBooks();
+    return () => unmounted = true;
   }, [searchStr]);
   
   const handleChange = (evt) => {
