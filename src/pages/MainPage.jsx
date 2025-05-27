@@ -4,7 +4,7 @@ import { getAll, update } from '../api/booksAPI'
 import BookShelf from '../components/BookShelf.jsx'
 
 const MainPage = ({shelves, noneShelf}) => {
-  const [groupedBooks, setGroupedBooks] = useState([])
+  const [booksByShelf, setBooksByShelf] = useState([])
   useEffect( () => {
     const getBooks = async () => {
       const res = await getAll();
@@ -17,7 +17,7 @@ const MainPage = ({shelves, noneShelf}) => {
         books[key].push(book);
         return books;
       }, {});
-      setGroupedBooks(grouped);
+      setBooksByShelf(grouped);
     };
     getBooks();
   }, []);
@@ -25,23 +25,23 @@ const MainPage = ({shelves, noneShelf}) => {
   const handleShelfChange = (book, newShelf) => {
     const oldShelf = book.shelf;
     const updatedBook = { ...book, shelf: newShelf };
-    const updatedGroups = { ...groupedBooks };
+    const updatedBooksByShelf = { ...booksByShelf };
     
-    updatedGroups[oldShelf] = groupedBooks[oldShelf].filter((b) => b.id !== book.id);
+    updatedBooksByShelf[oldShelf] = booksByShelf[oldShelf].filter((b) => b.id !== book.id);
     if (newShelf !== noneShelf.key) {
-      if (!updatedGroups[newShelf]) updatedGroups[newShelf] = [];
-      updatedGroups[newShelf].push(updatedBook);
+      if (!updatedBooksByShelf[newShelf]) updatedBooksByShelf[newShelf] = [];
+      updatedBooksByShelf[newShelf].push(updatedBook);
     }
-    setGroupedBooks(updatedGroups);
+    setBooksByShelf(updatedBooksByShelf);
     update(book, newShelf);
   };
   
   return (
     <>
       <h1 className="header">My Reads</h1>
-      {Object.keys(groupedBooks).map((groupKey) => {
+      {Object.keys(booksByShelf).map((groupKey) => {
           const shelf = shelves.filter((shelf)=>shelf.key === groupKey).pop();
-          const books = groupedBooks[groupKey];
+          const books = booksByShelf[groupKey];
           return <BookShelf title={shelf.title} handleShelfChange={handleShelfChange} books={books} shelves={[...shelves, noneShelf]} key={groupKey} />
       })}
       <Link className="button-search" to="/search">+</Link>
